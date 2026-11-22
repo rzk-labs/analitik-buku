@@ -58,13 +58,21 @@ if (gcaFile) {
 if (baruFile) {
   const idx = new Map(out.map((r, i) => [norm(r[0]) + '|' + norm(r[1]), i]));
   let add = 0, upd = 0;
-  for (const b of JSON.parse(fs.readFileSync(baruFile, 'utf8'))) {
+  // boleh beberapa file dipisah koma (mis. choice-2025-2026.json,populer.json)
+  for (const b of baruFile.split(',').flatMap(f => JSON.parse(fs.readFileSync(f, 'utf8')))) {
     const g = [...new Set(b.genres.map(t => GENRE[t.toLowerCase().replace(/ /g, '-')]).filter(Boolean))].slice(0, 4);
     const row = [b.title, b.author, b.year, b.rating, b.count, g, b.id, String(b.img).replace(/\.jpg$/, '._SY160_.jpg'), b.pages > 0 ? b.pages : 0];
     const key = norm(b.title) + '|' + norm(b.author);
-    if (idx.has(key)) { out[idx.get(key)] = row; upd++; } else { idx.set(key, out.length); out.push(row); add++; }
+    if (idx.has(key)) {
+      const old = out[idx.get(key)];
+      if (old[2] !== null && (row[2] === null || old[2] < row[2])) row[2] = old[2]; // tahun terbit asli
+      if (!row[5].length) row[5] = old[5];
+      if (!row[8]) row[8] = old[8] || 0;
+      if (!row[7] || row[7] === 'undefined') row[7] = old[7];
+      out[idx.get(key)] = row; upd++;
+    } else { idx.set(key, out.length); out.push(row); add++; }
   }
-  console.log('Choice Awards 2025-2026: tambah', add, '| perbarui', upd);
+  console.log('Goodreads (Choice 2025-2026 + populer): tambah', add, '| perbarui', upd);
 }
 for (const r of out) {
   r[0] = String(r[0]).replace(/\s+/g, ' ').trim(); r[1] = String(r[1]).replace(/\s+/g, ' ').trim();

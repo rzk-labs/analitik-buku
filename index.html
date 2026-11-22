@@ -104,7 +104,7 @@ footer{font-size:12px;color:var(--mute);padding:0 0 30px}
   <div id="note"></div>
   <div id="stats"></div>
   <main><div id="list"></div><button id="more" hidden>Tampilkan lebih banyak</button></main>
-  <footer>Sumber: Goodreads — 10.000 buku terpopuler (Goodbooks-10k) + nominasi Goodreads Choice Awards 2011–2026. Rating per 22 Nov 2026. Ketuk buku untuk membukanya di Goodreads.</footer>
+  <footer>Sumber: Goodreads — 10.000 buku terpopuler (Goodbooks-10k) + nominasi Goodreads Choice Awards 2011–2026 + buku paling populer per tahun/bulan (2010–2026). Rating per 22 Nov 2026. Ketuk buku untuk membukanya di Goodreads.</footer>
 </div>
 <script>
 const CATS=['Adventure','Art','Biography','Business','Chick Lit','Children','Classics','Contemporary','Cookbook','Crime','Dystopian','Economics','Fantasy','Graphic Novel','Health','Historical Fiction','History','Horror','Humor','LGBT','Literary Fiction','Manga','Memoir','Mystery','Non-Fiction','Paranormal','Philosophy','Poetry','Politics','Productivity','Psychology','Religion','Romance','Sci-Fi','Science','Self-Help','Short Stories','Spirituality','Thriller','Travel','Urban Fantasy','War','Young Adult'];
@@ -178,7 +178,7 @@ const rangeIn=()=>{
 async function loadGR(){
   if(S.gr)return S.gr;
   $('note').textContent='Memuat data…';
-  const r=await fetch('data/goodreads.json?v=9');
+  const r=await fetch('data/goodreads.json?v=10');
   if(!r.ok)throw new Error('data gagal dimuat ('+r.status+')');
   S.gr=(await r.json()).map(a=>({t:a[0],a:a[1],y:a[2],r:a[3],c:a[4],g:a[5],id:a[6],img:a[7]?(a[7].startsWith('http')?a[7]:'https://images.gr-assets.com/books/'+a[7]):'',p:a[8]||0}));
   $('sub').textContent='data Goodreads · '+nf.format(S.gr.length)+' buku';

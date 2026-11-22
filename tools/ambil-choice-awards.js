@@ -3,9 +3,12 @@
 // node ambil-choice-awards.js <folder-cache> <keluaran.json> 2025 2026   (OFFLINE=1 = hanya dari cache)
 const fs = require('fs');
 const path = require('path');
-const [cacheDir, outFile, ...years] = process.argv.slice(2);
+// --populer = ambil "paling populer per bulan" (goodreads.com/book/popular_by_date/TAHUN/BULAN), bukan nominasi
+const args = process.argv.slice(2);
+const POPULER = args.includes('--populer');
+const [cacheDir, outFile, ...years] = args.filter(a => a !== '--populer');
 if (!cacheDir || !outFile || !years.length || years.some(y => !/^20\d\d$/.test(y))) {
-  console.error('pakai: node ambil-choice-awards.js <folder-cache> <keluaran.json> <tahun...>'); process.exit(1);
+  console.error('pakai: node ambil-choice-awards.js [--populer] <folder-cache> <keluaran.json> <tahun...>'); process.exit(1);
 }
 fs.mkdirSync(cacheDir, { recursive: true });
 const JEDA = +process.env.JEDA_MS || 3000;
@@ -18,7 +21,7 @@ async function get(url) {
     await sleep(JEDA * (i + 1) ** 2);
     try {
       const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0 (personal book list)' } });
-      if (r.ok) { const t = await r.text(); if (t.length > 5000) { fs.writeFileSync(f, t); return t; } console.warn('  balasan kosong, coba lagi', url); continue; }
+      if (r.ok) { const t = await r.text(); if (t.includes('This page could not be found')) { console.warn('  404', url); return null; } if (t.length > 5000) { fs.writeFileSync(f, t); return t; } console.warn('  balasan kosong, coba lagi', url); continue; }
       console.warn('  HTTP', r.status, url);
     } catch (e) { console.warn('  gagal', e.message); }
   }
@@ -28,7 +31,18 @@ const clean = s => decode(s).replace(/\s+/g, ' ').trim();
 const decode = s => String(s).replace(/&amp;/g, '&').replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
 (async () => {
   const books = new Map(); // id -> {cat, year}
-  for (const y of years) {
+  const now = new Date();
+  for (const y of POPULER ? years : []) {
+    // halaman per tahun selalu ada (15 buku); per bulan hanya tersedia sejak 2023
+    const lastMonth = +y < 2023 ? 0 : +y === now.getFullYear() ? now.getMonth() + 1 : 12;
+    for (let m = 0; m <= lastMonth; m++) {
+      const html = await get(`https://www.goodreads.com/book/popular_by_date/${y}` + (m ? `/${m}` : '')); if (!html) continue;
+      const ids = [...new Set([...html.matchAll(/\/book\/show\/(\d+)/g)].map(x => x[1]))];
+      ids.forEach(id => { if (!books.has(id)) books.set(id, { award: +y }); });
+      console.log(' ', y + '/' + m, ids.length);
+    }
+  }
+  for (const y of POPULER ? [] : years) {
     const idx = await get(`https://www.goodreads.com/choiceawards/best-books-${y}`);
     if (!idx) { console.warn('indeks', y, 'gagal'); continue; }
     const cats = [...new Set([...idx.matchAll(new RegExp(`href="(/choiceawards/[a-z-]+-${y})"`, 'g'))].map(m => m[1]))];
