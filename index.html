@@ -160,7 +160,7 @@ async function run(){
       stats(S.rows,total);
     }
     render(true);
-    if(!S.rows.length)$('list').innerHTML='<p>Tidak ada buku yang cocok. Longgarkan filter.</p>';
+    if(!S.rows.length)$('list').innerHTML='<p>Tidak ada buku yang cocok. Longgarkan filter.'+(S.src==='ol'&&f.minc>500?' Jumlah rating di Open Library jauh lebih kecil dari Goodreads: turunkan <b>Minimal total rating</b>.':'')+'</p>';
   }catch(e){if(tok===S.token)$('info').innerHTML='<span class="warn">Gagal: '+esc(e.message)+'</span>'}
 }
 $('more').onclick=async()=>{
