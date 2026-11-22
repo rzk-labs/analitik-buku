@@ -56,7 +56,7 @@ if (baruFile) {
   let add = 0, upd = 0;
   for (const b of JSON.parse(fs.readFileSync(baruFile, 'utf8'))) {
     const g = [...new Set(b.genres.map(t => GENRE[t.toLowerCase().replace(/ /g, '-')]).filter(Boolean))].slice(0, 4);
-    const row = [b.title, b.author, b.year, b.rating, b.count, g, b.id, b.img];
+    const row = [b.title, b.author, b.year, b.rating, b.count, g, b.id, String(b.img).replace(/.jpg$/, '._SY160_.jpg')];
     const key = norm(b.title) + '|' + norm(b.author);
     if (idx.has(key)) { out[idx.get(key)] = row; upd++; } else { idx.set(key, out.length); out.push(row); add++; }
   }
