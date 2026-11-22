@@ -12,4 +12,4 @@ Satu sumber: Goodreads. API publik Goodreads ditutup sejak 2020, jadi data beras
 
 Data `data/goodreads.json` berlisensi CC BY-SA 4.0 (turunan Goodbooks-10k).
 
-Jumlah halaman: Choice Awards & 2025–2026 dari Goodreads; buku Goodbooks-10k dari Open Library per ISBN (). Halaman < 30 dianggap tidak diketahui.
+Jumlah halaman: Choice Awards & 2025–2026 dari Goodreads; buku Goodbooks-10k dari Open Library per ISBN (tools/ambil-halaman-ol.js). Halaman < 30 dianggap tidak diketahui.
