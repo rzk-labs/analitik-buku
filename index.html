@@ -9,84 +9,163 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-:root{--bg:#f6f3ec;--card:#fff;--ink:#1d1d1b;--mute:#6b675e;--acc:#1f3b2d;--star:#e0a100;--line:#e3ddd0}
-@media (prefers-color-scheme:dark){:root{--bg:#141412;--card:#1f1e1b;--ink:#efece4;--mute:#a19c90;--acc:#7fc39b;--line:#33312c}}
+:root{--bg:#f6f3ec;--card:#fff;--ink:#1d1d1b;--mute:#6b675e;--acc:#1f3b2d;--accT:#fff;--soft:#e8efe9;--star:#c98f00;--line:#e3ddd0}
+@media (prefers-color-scheme:dark){:root{--bg:#141412;--card:#1f1e1b;--ink:#efece4;--mute:#a19c90;--acc:#7fc39b;--accT:#10261a;--soft:#22302a;--star:#f0b429;--line:#33312c}}
 *{box-sizing:border-box}
-body{margin:0;font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
-header{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 14px 8px;border-bottom:1px solid var(--line)}
-h1{margin:0 0 8px;font-size:19px}
-.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}
-.grid>div{min-width:0}
 html,body{overflow-x:hidden;max-width:100%}
-.grid .full{grid-column:1/-1}
-label{font-size:11px;color:var(--mute);display:block}
-input,select{width:100%;min-width:0;-webkit-appearance:none;appearance:none;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px}
-.row2{display:flex;gap:6px}
-#info{font-size:12px;color:var(--mute);margin:8px 14px 0}
-#stats{display:flex;gap:6px;margin:8px 14px 0;flex-wrap:wrap}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:12px}
-.stat b{display:block;font-size:16px}
-main{padding:8px 14px 40px}
-.book{display:flex;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:8px;text-decoration:none;color:inherit}
-.book img,.book .noimg{width:52px;height:78px;object-fit:cover;border-radius:4px;background:var(--line);flex:none}
-.rank{font-size:12px;color:var(--mute);width:26px;flex:none;text-align:right}
-.t{font-weight:650}
-.a{color:var(--mute);font-size:13px}
-.m{font-size:13px;margin-top:3px}
+body{margin:0;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:860px;margin:0 auto;padding:0 14px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.top{display:flex;align-items:baseline;gap:8px;padding:12px 0 8px}
+h1{margin:0;font-size:20px}
+.sub{font-size:12px;color:var(--mute)}
+.search{position:relative}
+.search input{width:100%;padding:12px 40px 12px 40px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font-size:16px;-webkit-appearance:none;appearance:none}
+.search input:focus{outline:2px solid var(--acc);outline-offset:-1px}
+.search .ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:.6}
+.search .clr{position:absolute;right:6px;top:50%;transform:translateY(-50%);border:0;background:none;font-size:18px;padding:6px 10px;color:var(--mute)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 13px;font-size:14px;white-space:nowrap}
+.chip.on{background:var(--acc);border-color:var(--acc);color:var(--accT);font-weight:600}
+.bar{display:flex;gap:6px;align-items:center;padding:8px 0 10px;overflow-x:auto;scrollbar-width:none}
+.bar::-webkit-scrollbar{display:none}
+.fbtn{flex:none;border:1px solid var(--acc);background:none;color:var(--acc);border-radius:999px;padding:7px 13px;font-size:14px;font-weight:600}
+.fbtn .n{display:inline-block;min-width:18px;padding:0 5px;margin-left:4px;border-radius:9px;background:var(--acc);color:var(--accT);font-size:12px}
+.tag{flex:none;display:flex;align-items:center;gap:4px;background:var(--soft);border:0;border-radius:999px;padding:6px 6px 6px 11px;font-size:13px;white-space:nowrap}
+.tag b{font-weight:400;opacity:.7;padding:0 4px}
+.reset{flex:none;border:0;background:none;color:var(--mute);font-size:13px;text-decoration:underline;padding:6px}
+#panel{display:none;border-top:1px solid var(--line);padding:6px 0 12px;max-height:62vh;overflow-y:auto}
+#panel.open{display:block}
+.grp{margin-top:10px}
+.grp h3{margin:0 0 6px;font-size:13px;color:var(--mute);font-weight:600}
+.grp .chips{flex-wrap:wrap;overflow:visible;padding:0}
+.range{display:flex;gap:6px;align-items:center;margin-top:8px;font-size:13px;color:var(--mute)}
+.range input,select{min-width:0;width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;-webkit-appearance:none;appearance:none}
+.done{width:100%;margin-top:14px;padding:12px;border:0;border-radius:12px;background:var(--acc);color:var(--accT);font-weight:700}
+#note{font-size:13px;color:var(--mute);margin:10px 0 0}
+#stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:10px 0 0}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:12px;color:var(--mute)}
+.stat b{display:block;font-size:17px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:420px){#stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+main{padding:10px 0 60px}
+#list{display:grid;gap:8px}
+@media (min-width:760px){#list{grid-template-columns:1fr 1fr}}
+.book{position:relative;display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;text-decoration:none;color:inherit;min-width:0}
+.book:active{transform:scale(.99)}
+.cv{width:58px;height:87px;flex:none;border-radius:6px;object-fit:cover;background:var(--line)}
+.ph{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:20px;letter-spacing:.5px}
+.rank{position:absolute;top:6px;left:6px;min-width:22px;height:22px;padding:0 5px;border-radius:11px;background:var(--acc);color:var(--accT);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.info{min-width:0;flex:1}
+.t{font-weight:650;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.a{color:var(--mute);font-size:13px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m{font-size:14px;margin-top:4px}
 .star{color:var(--star);font-weight:700}
-.tags{margin-top:4px;display:flex;flex-wrap:wrap;gap:4px}
-.tags span{font-size:11px;border:1px solid var(--line);border-radius:20px;padding:1px 7px;color:var(--mute)}
-#more{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-weight:600}
+.tags{margin-top:5px;display:flex;flex-wrap:wrap;gap:4px}
+.tags span{font-size:11px;background:var(--soft);border-radius:20px;padding:2px 8px;color:var(--mute)}
+#more{width:100%;margin-top:10px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:600}
+.empty{text-align:center;padding:30px 10px;color:var(--mute)}
+.empty button{margin-top:10px;border:0;border-radius:10px;padding:10px 16px;background:var(--acc);color:var(--accT);font-weight:600}
 .warn{color:#b3261e}
+footer{font-size:12px;color:var(--mute);padding:0 0 30px}
 </style>
 </head>
 <body>
 <header>
-  <h1>📚 Analitik Buku</h1>
-  <div class="grid">
-    <div class="full"><label>Cari judul / penulis</label><input id="q" type="search" placeholder="mis. Tolkien" autocomplete="off"></div>
-    <div><label>Urutkan</label>
-      <select id="sort">
-        <option value="rating">⭐ Rating tertinggi</option>
-        <option value="count">👥 Total rating terbanyak</option>
-        <option value="new">🆕 Tahun terbaru</option>
-        <option value="old">📜 Tahun terlama</option>
-        <option value="pmax">📖 Halaman terbanyak</option>
-        <option value="pmin">📄 Halaman tersedikit</option>
-      </select></div>
-    <div><label>Kategori</label><select id="cat"><option value="">Semua kategori</option></select></div>
-    <div><label>Tahun terbit</label><div class="row2"><input id="y1" type="number" inputmode="numeric" placeholder="dari"><input id="y2" type="number" inputmode="numeric" placeholder="sampai"></div></div>
-    <div><label>Jumlah halaman</label><div class="row2"><input id="p1" type="number" inputmode="numeric" min="0" placeholder="min"><input id="p2" type="number" inputmode="numeric" min="0" placeholder="maks"></div></div>
-    <div><label>Minimal total rating</label><input id="minc" type="number" inputmode="numeric" min="0" placeholder="0"></div>
+  <div class="wrap">
+    <div class="top"><h1>📚 Analitik Buku</h1><span class="sub" id="sub">data Goodreads</span></div>
+    <div class="search"><span class="ic">🔍</span><input id="q" type="search" placeholder="Cari judul atau penulis" autocomplete="off" enterkeyhint="search" maxlength="100"><button class="clr" id="clr" hidden aria-label="Hapus pencarian">✕</button></div>
+    <div class="chips" id="sorts"></div>
+    <div class="bar"><button class="fbtn" id="fbtn">⚙️ Filter<span class="n" id="fcount" hidden></span></button><span id="active" style="display:contents"></span></div>
+    <div id="panel">
+      <div class="grp"><h3>Kategori</h3><div class="chips" id="catChips"></div>
+        <div class="range"><select id="cat" aria-label="Kategori lain"><option value="">Kategori lain…</option></select></div></div>
+      <div class="grp"><h3>Tahun terbit</h3><div class="chips" id="yearChips"></div>
+        <div class="range"><input id="y1" type="number" inputmode="numeric" placeholder="dari"> – <input id="y2" type="number" inputmode="numeric" placeholder="sampai"></div></div>
+      <div class="grp"><h3>Jumlah halaman</h3><div class="chips" id="pageChips"></div>
+        <div class="range"><input id="p1" type="number" inputmode="numeric" min="0" placeholder="min"> – <input id="p2" type="number" inputmode="numeric" min="0" placeholder="maks"></div></div>
+      <div class="grp"><h3>Minimal total rating</h3><div class="chips" id="mincChips"></div></div>
+      <button class="done" id="done">Lihat hasil</button>
+    </div>
   </div>
 </header>
-<div id="info"></div>
-<div id="stats"></div>
-<main><div id="list"></div><button id="more" hidden>Tampilkan lebih banyak</button></main>
+<div class="wrap">
+  <div id="note"></div>
+  <div id="stats"></div>
+  <main><div id="list"></div><button id="more" hidden>Tampilkan lebih banyak</button></main>
+  <footer>Sumber: Goodreads — 10.000 buku terpopuler (Goodbooks-10k) + nominasi Goodreads Choice Awards 2011–2026. Rating per 22 Nov 2026. Ketuk buku untuk membukanya di Goodreads.</footer>
+</div>
 <script>
 const CATS=['Adventure','Art','Biography','Business','Chick Lit','Children','Classics','Contemporary','Cookbook','Crime','Dystopian','Economics','Fantasy','Graphic Novel','Health','Historical Fiction','History','Horror','Humor','LGBT','Literary Fiction','Manga','Memoir','Mystery','Non-Fiction','Paranormal','Philosophy','Poetry','Politics','Productivity','Psychology','Religion','Romance','Sci-Fi','Science','Self-Help','Short Stories','Spirituality','Thriller','Travel','Urban Fantasy','War','Young Adult'];
+const TOPCATS=['Fantasy','Romance','Thriller','Mystery','Sci-Fi','Historical Fiction','Young Adult','Non-Fiction','Self-Help','Classics','Horror','Memoir'];
+const SORT_OPTS=[['count','🔥 Populer'],['rating','⭐ Rating'],['new','🆕 Terbaru'],['old','📜 Terlama'],['pmax','📖 Tebal'],['pmin','📄 Tipis']];
+const YEARS=[['2026','2026',2026,2026],['2025','2025',2025,2025],['5thn','2022–2026',2022,2026],['2010an','2010–2019',2010,2019],['lama','Sebelum 2000',null,1999]];
+const PAGES=[['s','< 200',null,199],['m','200–400',200,400],['l','400–600',400,600],['xl','> 600',601,null]];
+const MINCS=[[0,'Semua'],[1000,'≥ 1 rb'],[10000,'≥ 10 rb'],[100000,'≥ 100 rb'],[1000000,'≥ 1 jt']];
+const RATING_MIN_DEFAULT=1000; // urut rating: buku dengan sedikit rating tidak adil di atas
 const $=id=>document.getElementById(id);
-const S={gr:null,rows:[],shown:0,token:0};
-const PAGE=50;
-CATS.forEach(c=>$('cat').add(new Option(c,c)));
-const nf=new Intl.NumberFormat('id-ID');
+const nf=new Intl.NumberFormat('id-ID'), cf=new Intl.NumberFormat('id-ID',{notation:'compact',maximumFractionDigits:1});
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function num(id){const v=$(id).value.trim();if(v==='')return null;const n=parseInt(v,10);return Number.isFinite(n)?n:null}
-function filters(){
-  let y1=num('y1'),y2=num('y2');
-  if(y1!==null&&y2!==null&&y1>y2)[y1,y2]=[y2,y1];
-  let p1=num('p1'),p2=num('p2');
-  if(p1!==null)p1=Math.max(0,p1); if(p2!==null)p2=Math.max(0,p2);
-  if(p1!==null&&p2!==null&&p1>p2)[p1,p2]=[p2,p1];
-  return {p1,p2,q:$('q').value.trim().toLowerCase().slice(0,100),sort:$('sort').value,cat:$('cat').value,y1,y2,minc:Math.max(0,num('minc')??0)};
+const F={q:'',sort:'count',cat:'',y1:null,y2:null,p1:null,p2:null,minc:null}; // minc null = otomatis
+const S={gr:null,rows:[],shown:0};
+const PAGE=40;
+const toInt=(v,lo,hi)=>{v=String(v??'').trim();if(v==='')return null;const n=parseInt(v,10);return Number.isFinite(n)?Math.min(hi,Math.max(lo,n)):null};
+const effMinc=()=>F.minc!==null?F.minc:(F.sort==='rating'?RATING_MIN_DEFAULT:0);
+const yr=y=>y<0?(-y)+' SM':String(y);
+
+// ---------- kontrol ----------
+function chipHTML(id,label,on,extra=''){return `<button class="chip${on?' on':''}" data-id="${esc(id)}" ${extra}>${esc(label)}</button>`}
+function drawControls(){
+  $('sorts').innerHTML=SORT_OPTS.map(([v,l])=>chipHTML(v,l,F.sort===v)).join('');
+  $('catChips').innerHTML=chipHTML('','Semua',!F.cat)+TOPCATS.map(c=>chipHTML(c,c,F.cat===c)).join('');
+  $('cat').value=TOPCATS.includes(F.cat)?'':F.cat;
+  $('yearChips').innerHTML=chipHTML('','Semua',F.y1===null&&F.y2===null)+YEARS.map(([k,l,a,b])=>chipHTML(k,l,F.y1===a&&F.y2===b)).join('');
+  $('pageChips').innerHTML=chipHTML('','Semua',F.p1===null&&F.p2===null)+PAGES.map(([k,l,a,b])=>chipHTML(k,l,F.p1===a&&F.p2===b)).join('');
+  $('mincChips').innerHTML=MINCS.map(([v,l])=>chipHTML(v,l,effMinc()===v&&!(v===0&&F.minc===null&&F.sort==='rating'))).join('');
+  for(const [id,k] of [['y1','y1'],['y2','y2'],['p1','p1'],['p2','p2']]) if(document.activeElement!==$(id))$(id).value=F[k]??'';
+  $('clr').hidden=!F.q;
+  // filter aktif sebagai chip yang bisa dihapus
+  const act=[];
+  if(F.cat)act.push(['cat',F.cat]);
+  if(F.y1!==null||F.y2!==null)act.push(['year',F.y1===null?'≤ '+yr(F.y2):F.y2===null?'≥ '+yr(F.y1):F.y1===F.y2?yr(F.y1):yr(F.y1)+'–'+yr(F.y2)]);
+  if(F.p1!==null||F.p2!==null)act.push(['page',(F.p1===null?'≤ '+F.p2:F.p2===null?'≥ '+F.p1:F.p1+'–'+F.p2)+' hlm']);
+  if(F.minc!==null&&F.minc>0)act.push(['minc','≥ '+cf.format(F.minc)+' rating']);
+  $('active').innerHTML=act.map(([k,l])=>`<button class="tag" data-k="${k}" aria-label="Hapus filter ${esc(l)}">${esc(l)}<b>✕</b></button>`).join('')+(act.length?'<button class="reset" id="reset">Reset</button>':'');
+  $('fcount').hidden=!act.length;$('fcount').textContent=act.length;
 }
-// ---------- data Goodreads ----------
+CATS.filter(c=>!TOPCATS.includes(c)).forEach(c=>$('cat').add(new Option(c,c)));
+$('sorts').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;F.sort=b.dataset.id;update()};
+$('catChips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;F.cat=b.dataset.id;update()};
+$('cat').onchange=()=>{F.cat=$('cat').value;update()};
+$('yearChips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const p=YEARS.find(x=>x[0]===b.dataset.id);[F.y1,F.y2]=p?[p[2],p[3]]:[null,null];update()};
+$('pageChips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;const p=PAGES.find(x=>x[0]===b.dataset.id);[F.p1,F.p2]=p?[p[2],p[3]]:[null,null];update()};
+$('mincChips').onclick=e=>{const b=e.target.closest('.chip');if(!b)return;F.minc=+b.dataset.id;update()};
+$('active').onclick=e=>{
+  if(e.target.id==='reset'){Object.assign(F,{cat:'',y1:null,y2:null,p1:null,p2:null,minc:null});return update()}
+  const b=e.target.closest('.tag');if(!b)return;const k=b.dataset.k;
+  if(k==='cat')F.cat='';if(k==='year')F.y1=F.y2=null;if(k==='page')F.p1=F.p2=null;if(k==='minc')F.minc=null;update();
+};
+$('fbtn').onclick=()=>$('panel').classList.toggle('open');
+$('done').onclick=()=>{$('panel').classList.remove('open');scrollTo({top:0})};
+let tm;const later=fn=>{clearTimeout(tm);tm=setTimeout(fn,180)};
+$('q').oninput=()=>{F.q=$('q').value.trim().toLowerCase().slice(0,100);$('clr').hidden=!F.q;later(update)};
+$('clr').onclick=()=>{$('q').value='';F.q='';update();$('q').focus()};
+const rangeIn=()=>{
+  let y1=toInt($('y1').value,-3000,2100),y2=toInt($('y2').value,-3000,2100),p1=toInt($('p1').value,0,100000),p2=toInt($('p2').value,0,100000);
+  if(y1!==null&&y2!==null&&y1>y2)[y1,y2]=[y2,y1];if(p1!==null&&p2!==null&&p1>p2)[p1,p2]=[p2,p1];
+  Object.assign(F,{y1,y2,p1,p2});later(update);
+};
+['y1','y2','p1','p2'].forEach(id=>$(id).addEventListener('input',rangeIn));
+
+// ---------- data ----------
 async function loadGR(){
   if(S.gr)return S.gr;
-  $('info').textContent='Memuat data Goodreads…';
+  $('note').textContent='Memuat data…';
   const r=await fetch('data/goodreads.json?v=9');
   if(!r.ok)throw new Error('data gagal dimuat ('+r.status+')');
   S.gr=(await r.json()).map(a=>({t:a[0],a:a[1],y:a[2],r:a[3],c:a[4],g:a[5],id:a[6],img:a[7]?(a[7].startsWith('http')?a[7]:'https://images.gr-assets.com/books/'+a[7]):'',p:a[8]||0}));
+  $('sub').textContent='data Goodreads · '+nf.format(S.gr.length)+' buku';
   return S.gr;
 }
 const SORTS={rating:(a,b)=>b.r-a.r||b.c-a.c,count:(a,b)=>b.c-a.c,new:(a,b)=>(b.y??-1e9)-(a.y??-1e9)||b.c-a.c,old:(a,b)=>(a.y??1e9)-(b.y??1e9)||b.c-a.c,
@@ -99,46 +178,59 @@ function queryGR(data,f){
     b.c>=f.minc&&(!f.q||b.t.toLowerCase().includes(f.q)||b.a.toLowerCase().includes(f.q))
   ).sort(SORTS[f.sort]);
 }
+
 // ---------- tampilan ----------
-function link(b){return b.id?`https://www.goodreads.com/book/show/${b.id}`:'https://www.goodreads.com/search?q='+encodeURIComponent(b.isbn||(b.t+' '+b.a))}
-function card(b,i){
-  return `<a class="book" href="${link(b)}" target="_blank" rel="noopener"><div class="rank">${i+1}</div>`+
-  (b.img?`<img loading="lazy" src="${esc(b.img)}" alt="">`:'<div class="noimg"></div>')+
-  `<div><div class="t">${esc(b.t)}</div><div class="a">${esc(b.a)}${b.y!==null?' · '+b.y:''}${b.p?' · '+nf.format(b.p)+' hlm':''}</div>`+
-  `<div class="m"><span class="star">★ ${b.r.toFixed(2)}</span> · ${nf.format(b.c)} rating</div>`+
-  `<div class="tags">${b.g.map(g=>`<span>${esc(g)}</span>`).join('')}</div></div></a>`;
+const PH=['#2f5d50','#7a4b2a','#3d4f7a','#6b3d6b','#7a6a2a','#2a6b6b','#8a3b3b'];
+function cover(b){
+  if(b.img)return `<img class="cv" loading="lazy" src="${esc(b.img)}" alt="" onerror="this.outerHTML=this.dataset.ph" data-ph='${placeholder(b).replace(/'/g,'&#39;')}'>`;
+  return placeholder(b);
 }
-function stats(rows,total){
+function placeholder(b){
+  const ini=b.t.replace(/\(.*?\)/g,'').split(/\s+/).filter(w=>/^[A-Za-z0-9]/.test(w)).slice(0,2).map(w=>w[0].toUpperCase()).join('')||'📖';
+  let h=0;for(const ch of b.t)h=(h*31+ch.charCodeAt(0))>>>0;
+  return `<div class="cv ph" style="background:${PH[h%PH.length]}">${esc(ini)}</div>`;
+}
+function link(b){return b.id?`https://www.goodreads.com/book/show/${b.id}`:'https://www.goodreads.com/search?q='+encodeURIComponent(b.t+' '+b.a)}
+function card(b,i){
+  const meta=[esc(b.a),b.y!==null?yr(b.y):'',b.p?nf.format(b.p)+' hlm':''].filter(Boolean).join(' · ');
+  return `<a class="book" href="${link(b)}" target="_blank" rel="noopener"><span class="rank">${i+1}</span>${cover(b)}`+
+  `<div class="info"><div class="t">${esc(b.t)}</div><div class="a">${meta}</div>`+
+  `<div class="m"><span class="star">★ ${b.r.toFixed(2)}</span> · ${cf.format(b.c)} rating</div>`+
+  `<div class="tags">${b.g.slice(0,3).map(g=>`<span>${esc(g)}</span>`).join('')}</div></div></a>`;
+}
+function stats(rows){
   if(!rows.length){$('stats').innerHTML='';return}
   const avg=rows.reduce((s,b)=>s+b.r,0)/rows.length, sum=rows.reduce((s,b)=>s+b.c,0);
-  const ys=rows.map(b=>b.y).filter(y=>y!==null);
-  $('stats').innerHTML=`<div class="stat"><b>${nf.format(total)}</b>buku cocok</div><div class="stat"><b>★ ${avg.toFixed(2)}</b>rata-rata</div>`+
-   `<div class="stat"><b>${nf.format(sum)}</b>total rating</div>`+(ys.length?`<div class="stat"><b>${Math.min(...ys)}–${Math.max(...ys)}</b>rentang tahun</div>`:'');
+  const ps=rows.map(b=>b.p).filter(p=>p>0), avgP=ps.length?Math.round(ps.reduce((s,p)=>s+p,0)/ps.length):0;
+  $('stats').innerHTML=`<div class="stat"><b>${nf.format(rows.length)}</b>buku</div><div class="stat"><b>★ ${avg.toFixed(2)}</b>rata-rata rating</div>`+
+   `<div class="stat"><b>${cf.format(sum)}</b>total rating</div><div class="stat"><b>${avgP?nf.format(avgP):'–'}</b>rata-rata halaman</div>`;
 }
 function render(reset){
   if(reset){$('list').innerHTML='';S.shown=0}
   const part=S.rows.slice(S.shown,S.shown+PAGE);
   $('list').insertAdjacentHTML('beforeend',part.map((b,i)=>card(b,S.shown+i)).join(''));
   S.shown+=part.length;
-  $('more').hidden=!(S.shown<S.rows.length);
+  $('more').hidden=S.shown>=S.rows.length;
 }
-async function run(){
-  const tok=++S.token,f=filters();
+async function update(){
+  drawControls();
   try{
-    const data=await loadGR(); if(tok!==S.token)return;
+    const data=await loadGR();
+    const f={...F,minc:effMinc()};
     S.rows=queryGR(data,f);
-    $('info').textContent='Sumber: Goodreads (±15.000 buku: 10.000 terpopuler + nominasi Choice Awards 2011–2026, rating per 22 Nov 2026). Ketuk buku untuk buka di Goodreads.';
-    if((f.y1??0)>2026||(f.y2??0)>2026)$('info').innerHTML='<span class="warn">⚠️ Data tersedia sampai tahun <b>2026</b>.</span>';
-    stats(S.rows,S.rows.length);
-    render(true);
-    if(!S.rows.length)$('list').innerHTML='<p>Tidak ada buku yang cocok. Longgarkan filter.</p>';
-  }catch(e){if(tok===S.token)$('info').innerHTML='<span class="warn">Gagal: '+esc(e.message)+'</span>'}
+    const notes=[];
+    if(F.sort==='rating'&&F.minc===null)notes.push('⭐ Urut rating hanya menampilkan buku dengan minimal 1.000 rating, supaya adil. Ubah di Filter.');
+    if((F.sort==='pmax'||F.sort==='pmin'))notes.push('Buku tanpa data halaman ditaruh paling bawah.');
+    if((F.y1??0)>2026||(F.y2??0)>2026)notes.push('<span class="warn">⚠️ Data tersedia sampai tahun 2026.</span>');
+    $('note').innerHTML=notes.join(' ');
+    stats(S.rows);render(true);
+    if(!S.rows.length)$('list').innerHTML='<div class="empty">Tidak ada buku yang cocok.<br><button id="reset2">Hapus semua filter</button></div>';
+  }catch(e){$('note').innerHTML='<span class="warn">Gagal memuat: '+esc(e.message)+'</span>'}
 }
+$('list').addEventListener('click',e=>{if(e.target.id==='reset2'){Object.assign(F,{q:'',cat:'',y1:null,y2:null,p1:null,p2:null,minc:null});$('q').value='';update()}});
 $('more').onclick=()=>render(false);
-let tm;const deb=()=>{clearTimeout(tm);tm=setTimeout(run,150)};
-['q','y1','y2','p1','p2','minc'].forEach(id=>$(id).addEventListener('input',deb));
-['sort','cat'].forEach(id=>$(id).addEventListener('change',run));
-run();
+if('IntersectionObserver' in window)new IntersectionObserver(es=>{if(es[0].isIntersecting&&!$('more').hidden)render(false)},{rootMargin:'400px'}).observe($('more'));
+update();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 </script>
 </body>
