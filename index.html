@@ -85,7 +85,7 @@ function filters(){
 async function loadGR(){
   if(S.gr)return S.gr;
   $('info').textContent='Memuat data Goodreads…';
-  const r=await fetch('data/goodreads.json');
+  const r=await fetch('data/goodreads.json?v=4');
   if(!r.ok)throw new Error('data gagal dimuat ('+r.status+')');
   S.gr=(await r.json()).map(a=>({t:a[0],a:a[1],y:a[2],r:a[3],c:a[4],g:a[5],id:a[6],img:a[7]?'https://images.gr-assets.com/books/'+a[7]:''}));
   return S.gr;
