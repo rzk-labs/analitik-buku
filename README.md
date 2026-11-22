@@ -1,6 +1,6 @@
 # Analitik Buku
 
-PWA untuk menjelajah buku: urutkan **rating** / **total rating** / tahun, filter **kategori** dan **rentang tahun**.
+PWA untuk menjelajah buku: urutkan **rating** / **total rating** / tahun / **jumlah halaman**, filter **kategori**, **rentang tahun** dan **jumlah halaman**.
 
 - **Goodreads** (±14.500 buku, rating asli Goodreads):
   - 10.000 buku terpopuler dari [Goodbooks-10k](https://github.com/zygmuntz/goodbooks-10k) (CC BY-SA 4.0, data s/d 2017).
@@ -11,3 +11,5 @@ PWA untuk menjelajah buku: urutkan **rating** / **total rating** / tahun, filter
 Satu sumber: Goodreads. API publik Goodreads ditutup sejak 2020, jadi data berasal dari dataset + nominasi Choice Awards (bukan seluruh database).
 
 Data `data/goodreads.json` berlisensi CC BY-SA 4.0 (turunan Goodbooks-10k).
+
+Jumlah halaman: Choice Awards & 2025–2026 dari Goodreads; buku Goodbooks-10k dari Open Library per ISBN (). Halaman < 30 dianggap tidak diketahui.

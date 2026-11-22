@@ -2,8 +2,10 @@
 const fs = require('fs');
 const path = require('path');
 const Papa = require(path.join(__dirname, 'papaparse.min.js'));
-const src = process.argv[2], gcaFile = process.argv[3], baruFile = process.argv[4];
-if (!src) { console.error('pakai: node build-data.js <folder-goodbooks-csv> [choice-awards.csv] [choice-2025-2026.json]'); process.exit(1); }
+const src = process.argv[2], gcaFile = process.argv[3], baruFile = process.argv[4], halamanFile = process.argv[5];
+if (!src) { console.error('pakai: node build-data.js <folder-goodbooks-csv> [choice-awards.csv] [choice-2025-2026.json] [halaman-ol.json]'); process.exit(1); }
+// kolom baris: [judul, penulis, tahun, rating, total rating, genre[], id goodreads, cover, halaman]
+const halamanOL = halamanFile && fs.existsSync(halamanFile) ? JSON.parse(fs.readFileSync(halamanFile, 'utf8')) : {};
 const read = f => Papa.parse(fs.readFileSync(path.join(src, f), 'utf8'), { header: true, skipEmptyLines: true }).data;
 const GENRE = {
   'fantasy':'Fantasy','science-fiction':'Sci-Fi','sci-fi':'Sci-Fi','romance':'Romance','mystery':'Mystery',
@@ -31,10 +33,11 @@ for (const b of read('books.csv')) {
   const y = parseInt(b.original_publication_year, 10);
   const g = Object.entries(byBook[b.goodreads_book_id] || {}).sort((a, c) => c[1] - a[1]).slice(0, 4).map(e => e[0]);
   out.push([b.title, (b.authors || '').split(',')[0].trim(), isFinite(y) ? y : null, ar, rc, g, +b.goodreads_book_id,
-    (b.small_image_url || '').includes('nophoto') ? '' : (b.image_url || '').replace('https://images.gr-assets.com/books/', '')]);
+    (b.small_image_url || '').includes('nophoto') ? '' : (b.image_url || '').replace('https://images.gr-assets.com/books/', ''),
+    halamanOL[b.goodreads_book_id] || 0]);
 }
 // --- Goodreads Choice Awards 2011-2024 (buku baru, rating Goodreads) ---
-const norm = x => String(x || '').toLowerCase().replace(/(.*?)/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const norm = x => String(x || '').toLowerCase().replace(/\(.*?\)/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
 if (gcaFile) {
   const idx = new Map(out.map((r, i) => [norm(r[0]) + '|' + norm(r[1]), i]));
   let add = 0, upd = 0;
@@ -42,11 +45,12 @@ if (gcaFile) {
   for (const b of gca) {
     const ar = parseFloat(b.rating), rc = parseInt(b.num_ratings, 10), y = parseInt(b.publication_year, 10);
     if (!b.title || !isFinite(ar) || !isFinite(rc)) continue;
-    let tags = []; try { tags = JSON.parse(String(b.genres).replace(/'/g, '"')); } catch { tags = String(b.genres).replace(/[[]']/g, '').split(',').map(t => t.trim()); }
+    let tags = []; try { tags = JSON.parse(String(b.genres).replace(/'/g, '"')); } catch { tags = String(b.genres).replace(/[[\]']/g, '').split(',').map(t => t.trim()); }
     const g = [...new Set(tags.map(t => GENRE[t.toLowerCase().replace(/ /g, '-')]).filter(Boolean))].slice(0, 4);
     const key = norm(b.title) + '|' + norm(b.author);
-    if (idx.has(key)) { const r = out[idx.get(key)]; if (rc > r[4]) { r[3] = ar; r[4] = rc; upd++; } continue; }
-    idx.set(key, out.length); out.push([b.title, b.author, isFinite(y) ? y : null, ar, rc, g, 0, '']); add++;
+    const pg = parseInt(b.num_pages, 10) > 0 ? parseInt(b.num_pages, 10) : 0;
+    if (idx.has(key)) { const r = out[idx.get(key)]; if (!r[8] && pg) r[8] = pg; if (rc > r[4]) { r[3] = ar; r[4] = rc; upd++; } continue; }
+    idx.set(key, out.length); out.push([b.title, b.author, isFinite(y) ? y : null, ar, rc, g, 0, '', pg]); add++;
   }
   console.log('Choice Awards: tambah', add, '| perbarui', upd);
 }
@@ -56,13 +60,16 @@ if (baruFile) {
   let add = 0, upd = 0;
   for (const b of JSON.parse(fs.readFileSync(baruFile, 'utf8'))) {
     const g = [...new Set(b.genres.map(t => GENRE[t.toLowerCase().replace(/ /g, '-')]).filter(Boolean))].slice(0, 4);
-    const row = [b.title, b.author, b.year, b.rating, b.count, g, b.id, String(b.img).replace(/.jpg$/, '._SY160_.jpg')];
+    const row = [b.title, b.author, b.year, b.rating, b.count, g, b.id, String(b.img).replace(/\.jpg$/, '._SY160_.jpg'), b.pages > 0 ? b.pages : 0];
     const key = norm(b.title) + '|' + norm(b.author);
     if (idx.has(key)) { out[idx.get(key)] = row; upd++; } else { idx.set(key, out.length); out.push(row); add++; }
   }
   console.log('Choice Awards 2025-2026: tambah', add, '| perbarui', upd);
 }
-for (const r of out) { r[0] = String(r[0]).replace(/\s+/g, ' ').trim(); r[1] = String(r[1]).replace(/\s+/g, ' ').trim(); }
+for (const r of out) {
+  r[0] = String(r[0]).replace(/\s+/g, ' ').trim(); r[1] = String(r[1]).replace(/\s+/g, ' ').trim();
+  r[8] = r[8] >= 30 ? r[8] : 0; // < 30 hlm biasanya data edisi audio/Kindle yang salah -> tidak diketahui
+}
 fs.mkdirSync(path.join(__dirname, '..', 'data'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, '..', 'data', 'goodreads.json'), JSON.stringify(out));
 const cnt = {}; out.forEach(r => r[5].forEach(g => cnt[g] = (cnt[g] || 0) + 1));
