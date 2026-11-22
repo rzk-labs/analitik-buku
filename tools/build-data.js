@@ -2,8 +2,8 @@
 const fs = require('fs');
 const path = require('path');
 const Papa = require(path.join(__dirname, 'papaparse.min.js'));
-const src = process.argv[2], gcaFile = process.argv[3];
-if (!src) { console.error('pakai: node build-data.js <folder-goodbooks-csv> [choice-awards.csv]'); process.exit(1); }
+const src = process.argv[2], gcaFile = process.argv[3], baruFile = process.argv[4];
+if (!src) { console.error('pakai: node build-data.js <folder-goodbooks-csv> [choice-awards.csv] [choice-2025-2026.json]'); process.exit(1); }
 const read = f => Papa.parse(fs.readFileSync(path.join(src, f), 'utf8'), { header: true, skipEmptyLines: true }).data;
 const GENRE = {
   'fantasy':'Fantasy','science-fiction':'Sci-Fi','sci-fi':'Sci-Fi','romance':'Romance','mystery':'Mystery',
@@ -50,6 +50,19 @@ if (gcaFile) {
   }
   console.log('Choice Awards: tambah', add, '| perbarui', upd);
 }
+// --- Choice Awards 2025-2026 (hasil tools/ambil-choice-awards.js) ---
+if (baruFile) {
+  const idx = new Map(out.map((r, i) => [norm(r[0]) + '|' + norm(r[1]), i]));
+  let add = 0, upd = 0;
+  for (const b of JSON.parse(fs.readFileSync(baruFile, 'utf8'))) {
+    const g = [...new Set(b.genres.map(t => GENRE[t.toLowerCase().replace(/ /g, '-')]).filter(Boolean))].slice(0, 4);
+    const row = [b.title, b.author, b.year, b.rating, b.count, g, b.id, b.img];
+    const key = norm(b.title) + '|' + norm(b.author);
+    if (idx.has(key)) { out[idx.get(key)] = row; upd++; } else { idx.set(key, out.length); out.push(row); add++; }
+  }
+  console.log('Choice Awards 2025-2026: tambah', add, '| perbarui', upd);
+}
+for (const r of out) { r[0] = String(r[0]).replace(/s+/g, ' ').trim(); r[1] = String(r[1]).replace(/s+/g, ' ').trim(); }
 fs.mkdirSync(path.join(__dirname, '..', 'data'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, '..', 'data', 'goodreads.json'), JSON.stringify(out));
 const cnt = {}; out.forEach(r => r[5].forEach(g => cnt[g] = (cnt[g] || 0) + 1));
