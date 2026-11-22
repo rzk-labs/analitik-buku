@@ -105,7 +105,9 @@ const PAGES=[['s','< 200',null,199],['m','200–400',200,400],['l','400–600',4
 const MINCS=[[0,'Semua'],[1000,'≥ 1 rb'],[10000,'≥ 10 rb'],[100000,'≥ 100 rb'],[1000000,'≥ 1 jt']];
 const RATING_MIN_DEFAULT=1000; // urut rating: buku dengan sedikit rating tidak adil di atas
 const $=id=>document.getElementById(id);
-const nf=new Intl.NumberFormat('id-ID'), cf=new Intl.NumberFormat('id-ID',{notation:'compact',maximumFractionDigits:1});
+const nf=new Intl.NumberFormat('id-ID');
+const d1=new Intl.NumberFormat('id-ID',{maximumFractionDigits:1}), d2=new Intl.NumberFormat('id-ID',{maximumFractionDigits:2});
+const cf={format:n=>n>=1e9?d2.format(n/1e9)+' miliar':n>=1e6?d1.format(n/1e6)+' jt':n>=1e3?d1.format(n/1e3)+' rb':nf.format(n)};
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const F={q:'',sort:'count',cat:'',y1:null,y2:null,p1:null,p2:null,minc:null}; // minc null = otomatis
 const S={gr:null,rows:[],shown:0};
