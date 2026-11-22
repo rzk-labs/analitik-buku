@@ -151,6 +151,7 @@ async function run(){
       const data=await loadGR(); if(tok!==S.token)return;
       S.rows=queryGR(data,f);
       $('info').textContent='Sumber: 10.000 buku terpopuler Goodreads (dataset Goodbooks-10k, data s/d 2017). Ketuk buku untuk buka di Goodreads.';
+      if((f.y1??0)>2017||(f.y2??0)>2017)$('info').innerHTML='<span class="warn">⚠️ Data Goodreads 10k hanya sampai <b>2017</b>.</span> <button id="go-ol" style="padding:4px 10px;border-radius:8px;border:0;background:var(--acc);color:var(--bg);font-weight:600">Cari tahun ini di Open Library →</button>';
       stats(S.rows,S.rows.length);
     }else{
       $('info').textContent='Mencari di Open Library…';
@@ -170,7 +171,9 @@ $('more').onclick=async()=>{
 let tm;const deb=()=>{clearTimeout(tm);tm=setTimeout(run,S.src==='ol'?600:150)};
 ['q','y1','y2','minc'].forEach(id=>$(id).addEventListener('input',deb));
 ['sort','cat'].forEach(id=>$(id).addEventListener('change',run));
-for(const s of ['gr','ol'])$('s-'+s).onclick=()=>{S.src=s;$('s-gr').classList.toggle('on',s==='gr');$('s-ol').classList.toggle('on',s==='ol');run()};
+function setSrc(s){S.src=s;$('s-gr').classList.toggle('on',s==='gr');$('s-ol').classList.toggle('on',s==='ol');run()}
+for(const s of ['gr','ol'])$('s-'+s).onclick=()=>setSrc(s);
+$('info').addEventListener('click',e=>{if(e.target.id==='go-ol'){if(num('minc')>500)$('minc').value='';setSrc('ol')}});
 run();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 </script>
