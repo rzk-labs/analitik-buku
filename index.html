@@ -45,7 +45,7 @@ main{padding:8px 14px 40px}
 <header>
   <h1>📚 Analitik Buku</h1>
   <div class="src">
-    <button id="s-gr" class="on">Goodreads 10k</button>
+    <button id="s-gr" class="on">Goodreads</button>
     <button id="s-ol">Open Library (live)</button>
   </div>
   <div class="grid">
@@ -150,8 +150,8 @@ async function run(){
     if(S.src==='gr'){
       const data=await loadGR(); if(tok!==S.token)return;
       S.rows=queryGR(data,f);
-      $('info').textContent='Sumber: 10.000 buku terpopuler Goodreads (dataset Goodbooks-10k, data s/d 2017). Ketuk buku untuk buka di Goodreads.';
-      if((f.y1??0)>2017||(f.y2??0)>2017)$('info').innerHTML='<span class="warn">⚠️ Data Goodreads 10k hanya sampai <b>2017</b>.</span> <button id="go-ol" style="padding:4px 10px;border-radius:8px;border:0;background:var(--acc);color:var(--bg);font-weight:600">Cari tahun ini di Open Library →</button>';
+      $('info').textContent='Sumber: ±14.500 buku Goodreads: 10.000 terpopuler (Goodbooks-10k) + nominasi Goodreads Choice Awards 2011–2024. Buku 2025+ ada di Open Library. Ketuk buku untuk buka di Goodreads.';
+      if((f.y1??0)>2024||(f.y2??0)>2024)$('info').innerHTML='<span class="warn">⚠️ Data Goodreads di aplikasi ini sampai <b>2024</b>.</span> <button id="go-ol" style="padding:4px 10px;border-radius:8px;border:0;background:var(--acc);color:var(--bg);font-weight:600">Cari tahun ini di Open Library →</button>';
       stats(S.rows,S.rows.length);
     }else{
       $('info').textContent='Mencari di Open Library…';

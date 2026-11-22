@@ -2,8 +2,8 @@
 const fs = require('fs');
 const path = require('path');
 const Papa = require(path.join(__dirname, 'papaparse.min.js'));
-const src = process.argv[2];
-if (!src) { console.error('pakai: node build-data.js <folder-csv>'); process.exit(1); }
+const src = process.argv[2], gcaFile = process.argv[3];
+if (!src) { console.error('pakai: node build-data.js <folder-goodbooks-csv> [choice-awards.csv]'); process.exit(1); }
 const read = f => Papa.parse(fs.readFileSync(path.join(src, f), 'utf8'), { header: true, skipEmptyLines: true }).data;
 const GENRE = {
   'fantasy':'Fantasy','science-fiction':'Sci-Fi','sci-fi':'Sci-Fi','romance':'Romance','mystery':'Mystery',
@@ -16,7 +16,7 @@ const GENRE = {
   'humor':'Humor','religion':'Religion','christian':'Religion','spirituality':'Spirituality','travel':'Travel',
   'cookbooks':'Cookbook','art':'Art','politics':'Politics','economics':'Economics','health':'Health',
   'productivity':'Productivity','adventure':'Adventure','war':'War','short-stories':'Short Stories',
-  'literary-fiction':'Literary Fiction','chick-lit':'Chick Lit','lgbt':'LGBT','urban-fantasy':'Urban Fantasy'
+  'literary-fiction':'Literary Fiction','self-help':'Self-Help','middle-grade':'Children','romantasy':'Fantasy','cooking':'Cookbook','food':'Cookbook','true-crime':'Crime','audiobook':null,'fiction':null,'chick-lit':'Chick Lit','lgbt':'LGBT','urban-fantasy':'Urban Fantasy'
 };
 const tagName = {}; for (const t of read('tags.csv')) tagName[t.tag_id] = t.tag_name;
 const byBook = {};
@@ -32,6 +32,23 @@ for (const b of read('books.csv')) {
   const g = Object.entries(byBook[b.goodreads_book_id] || {}).sort((a, c) => c[1] - a[1]).slice(0, 4).map(e => e[0]);
   out.push([b.title, (b.authors || '').split(',')[0].trim(), isFinite(y) ? y : null, ar, rc, g, +b.goodreads_book_id,
     (b.small_image_url || '').includes('nophoto') ? '' : (b.image_url || '').replace('https://images.gr-assets.com/books/', '')]);
+}
+// --- Goodreads Choice Awards 2011-2024 (buku baru, rating Goodreads) ---
+const norm = x => String(x || '').toLowerCase().replace(/(.*?)/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+if (gcaFile) {
+  const idx = new Map(out.map((r, i) => [norm(r[0]) + '|' + norm(r[1]), i]));
+  let add = 0, upd = 0;
+  const gca = Papa.parse(fs.readFileSync(gcaFile, 'utf8'), { header: true, skipEmptyLines: true }).data;
+  for (const b of gca) {
+    const ar = parseFloat(b.rating), rc = parseInt(b.num_ratings, 10), y = parseInt(b.publication_year, 10);
+    if (!b.title || !isFinite(ar) || !isFinite(rc)) continue;
+    let tags = []; try { tags = JSON.parse(String(b.genres).replace(/'/g, '"')); } catch { tags = String(b.genres).replace(/[[]']/g, '').split(',').map(t => t.trim()); }
+    const g = [...new Set(tags.map(t => GENRE[t.toLowerCase().replace(/ /g, '-')]).filter(Boolean))].slice(0, 4);
+    const key = norm(b.title) + '|' + norm(b.author);
+    if (idx.has(key)) { const r = out[idx.get(key)]; if (rc > r[4]) { r[3] = ar; r[4] = rc; upd++; } continue; }
+    idx.set(key, out.length); out.push([b.title, b.author, isFinite(y) ? y : null, ar, rc, g, 0, '']); add++;
+  }
+  console.log('Choice Awards: tambah', add, '| perbarui', upd);
 }
 fs.mkdirSync(path.join(__dirname, '..', 'data'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, '..', 'data', 'goodreads.json'), JSON.stringify(out));
