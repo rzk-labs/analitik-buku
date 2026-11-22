@@ -15,11 +15,8 @@
 body{margin:0;font:15px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
 header{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 14px 8px;border-bottom:1px solid var(--line)}
 h1{margin:0 0 8px;font-size:19px}
-.src{display:flex;gap:6px;margin-bottom:8px}
-.src button{flex:1;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-weight:600}
-.src button.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
 .grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}
-.grid>div,.src button{min-width:0}
+.grid>div{min-width:0}
 html,body{overflow-x:hidden;max-width:100%}
 .grid .full{grid-column:1/-1}
 label{font-size:11px;color:var(--mute);display:block}
@@ -46,10 +43,6 @@ main{padding:8px 14px 40px}
 <body>
 <header>
   <h1>📚 Analitik Buku</h1>
-  <div class="src">
-    <button id="s-gr" class="on">Goodreads</button>
-    <button id="s-ol">Open Library (live)</button>
-  </div>
   <div class="grid">
     <div class="full"><label>Cari judul / penulis</label><input id="q" type="search" placeholder="mis. Tolkien" autocomplete="off"></div>
     <div><label>Urutkan</label>
@@ -69,10 +62,8 @@ main{padding:8px 14px 40px}
 <main><div id="list"></div><button id="more" hidden>Tampilkan lebih banyak</button></main>
 <script>
 const CATS=['Adventure','Art','Biography','Business','Chick Lit','Children','Classics','Contemporary','Cookbook','Crime','Dystopian','Economics','Fantasy','Graphic Novel','Health','Historical Fiction','History','Horror','Humor','LGBT','Literary Fiction','Manga','Memoir','Mystery','Non-Fiction','Paranormal','Philosophy','Poetry','Politics','Productivity','Psychology','Religion','Romance','Sci-Fi','Science','Self-Help','Short Stories','Spirituality','Thriller','Travel','Urban Fantasy','War','Young Adult'];
-// nama subject Open Library untuk tiap kategori
-const OLSUB={'Sci-Fi':'science fiction','Non-Fiction':'nonfiction','Graphic Novel':'graphic novels','Children':'juvenile fiction','Chick Lit':'chick lit','Cookbook':'cooking','Self-Help':'self-help','Short Stories':'short stories','Young Adult':'young adult fiction'};
 const $=id=>document.getElementById(id);
-const S={src:'gr',gr:null,rows:[],shown:0,olPage:1,olTotal:0,token:0};
+const S={gr:null,rows:[],shown:0,token:0};
 const PAGE=50;
 CATS.forEach(c=>$('cat').add(new Option(c,c)));
 const nf=new Intl.NumberFormat('id-ID');
@@ -83,7 +74,7 @@ function filters(){
   if(y1!==null&&y2!==null&&y1>y2)[y1,y2]=[y2,y1];
   return {q:$('q').value.trim().toLowerCase().slice(0,100),sort:$('sort').value,cat:$('cat').value,y1,y2,minc:Math.max(0,num('minc')??0)};
 }
-// ---------- Goodreads 10k (lokal) ----------
+// ---------- data Goodreads ----------
 async function loadGR(){
   if(S.gr)return S.gr;
   $('info').textContent='Memuat data Goodreads…';
@@ -100,29 +91,6 @@ function queryGR(data,f){
     b.c>=f.minc&&(!f.q||b.t.toLowerCase().includes(f.q)||b.a.toLowerCase().includes(f.q))
   ).sort(SORTS[f.sort]);
 }
-// ---------- Open Library (live) ----------
-function olQuery(f){
-  const p=[];
-  if(f.q)p.push(f.q.replace(/[:\[\]"]/g,' '));
-  if(f.cat)p.push('subject:"'+(OLSUB[f.cat]||f.cat.toLowerCase())+'"');
-  if(f.y1!==null||f.y2!==null)p.push(`first_publish_year:[${f.y1??'*'} TO ${f.y2??'*'}]`);
-  p.push(`ratings_count:[${Math.max(1,f.minc)} TO *]`);
-  return p.join(' ');
-}
-async function fetchOL(f,page){
-  const u=new URL('https://openlibrary.org/search.json');
-  u.searchParams.set('q',olQuery(f));
-  u.searchParams.set('sort',{rating:'rating',count:'readinglog',new:'new',old:'old'}[f.sort]);
-  u.searchParams.set('fields','key,title,author_name,first_publish_year,ratings_average,ratings_count,cover_i,isbn,subject');
-  u.searchParams.set('limit',100);u.searchParams.set('page',page);
-  const r=await fetch(u);if(!r.ok)throw new Error('Open Library error '+r.status);
-  const j=await r.json();
-  const rows=j.docs.map(d=>({t:d.title,a:(d.author_name||[''])[0],y:d.first_publish_year??null,r:d.ratings_average||0,c:d.ratings_count||0,
-    g:(d.subject||[]).filter(s=>s.length<25).slice(0,3),isbn:(d.isbn||[])[0],
-    img:d.cover_i?`https://covers.openlibrary.org/b/id/${d.cover_i}-M.jpg`:'',ol:'https://openlibrary.org'+d.key}));
-  if(f.sort==='count')rows.sort(SORTS.count);
-  return {rows,total:j.numFound};
-}
 // ---------- tampilan ----------
 function link(b){return b.id?`https://www.goodreads.com/book/show/${b.id}`:'https://www.goodreads.com/search?q='+encodeURIComponent(b.isbn||(b.t+' '+b.a))}
 function card(b,i){
@@ -137,45 +105,31 @@ function stats(rows,total){
   const avg=rows.reduce((s,b)=>s+b.r,0)/rows.length, sum=rows.reduce((s,b)=>s+b.c,0);
   const ys=rows.map(b=>b.y).filter(y=>y!==null);
   $('stats').innerHTML=`<div class="stat"><b>${nf.format(total)}</b>buku cocok</div><div class="stat"><b>★ ${avg.toFixed(2)}</b>rata-rata</div>`+
-   `<div class="stat"><b>${nf.format(sum)}</b>total rating${S.src==='ol'?' (dimuat)':''}</div>`+(ys.length?`<div class="stat"><b>${Math.min(...ys)}–${Math.max(...ys)}</b>rentang tahun</div>`:'');
+   `<div class="stat"><b>${nf.format(sum)}</b>total rating</div>`+(ys.length?`<div class="stat"><b>${Math.min(...ys)}–${Math.max(...ys)}</b>rentang tahun</div>`:'');
 }
 function render(reset){
   if(reset){$('list').innerHTML='';S.shown=0}
   const part=S.rows.slice(S.shown,S.shown+PAGE);
   $('list').insertAdjacentHTML('beforeend',part.map((b,i)=>card(b,S.shown+i)).join(''));
   S.shown+=part.length;
-  $('more').hidden=!(S.shown<S.rows.length||(S.src==='ol'&&S.rows.length<S.olTotal));
+  $('more').hidden=!(S.shown<S.rows.length);
 }
 async function run(){
   const tok=++S.token,f=filters();
   try{
-    if(S.src==='gr'){
-      const data=await loadGR(); if(tok!==S.token)return;
-      S.rows=queryGR(data,f);
-      $('info').textContent='Sumber: buku Goodreads: 10.000 terpopuler (Goodbooks-10k) + nominasi Goodreads Choice Awards 2011–2026 (rating 2025–2026 diambil Nov 2026). Ketuk buku untuk buka di Goodreads.';
-      if((f.y1??0)>2026||(f.y2??0)>2026)$('info').innerHTML='<span class="warn">⚠️ Data Goodreads di aplikasi ini sampai <b>2026</b>.</span> <button id="go-ol" style="padding:4px 10px;border-radius:8px;border:0;background:var(--acc);color:var(--bg);font-weight:600">Cari tahun ini di Open Library →</button>';
-      stats(S.rows,S.rows.length);
-    }else{
-      $('info').textContent='Mencari di Open Library…';
-      S.olPage=1;const {rows,total}=await fetchOL(f,1); if(tok!==S.token)return;
-      S.rows=rows;S.olTotal=total;
-      $('info').innerHTML='<span class="warn">⚠️ Ini mode <b>Open Library</b>: rating dari pengguna Open Library (puluhan–ribuan), <b>bukan</b> Goodreads.</span>'+(f.sort==='count'?' Urutan total rating = 100 buku terpopuler lalu diurutkan.':'')+((f.y1??0)<=2026&&(f.y2??0)<=2026?'<br><button id="go-gr" style="margin-top:6px;padding:6px 12px;border-radius:8px;border:0;background:var(--acc);color:var(--bg);font-weight:600">Lihat rating Goodreads (jutaan) →</button>':'');
-      stats(S.rows,total);
-    }
+    const data=await loadGR(); if(tok!==S.token)return;
+    S.rows=queryGR(data,f);
+    $('info').textContent='Sumber: Goodreads (±15.000 buku: 10.000 terpopuler + nominasi Choice Awards 2011–2026, rating per 22 Nov 2026). Ketuk buku untuk buka di Goodreads.';
+    if((f.y1??0)>2026||(f.y2??0)>2026)$('info').innerHTML='<span class="warn">⚠️ Data tersedia sampai tahun <b>2026</b>.</span>';
+    stats(S.rows,S.rows.length);
     render(true);
-    if(!S.rows.length)$('list').innerHTML='<p>Tidak ada buku yang cocok. Longgarkan filter.'+(S.src==='ol'&&f.minc>500?' Jumlah rating di Open Library jauh lebih kecil dari Goodreads: turunkan <b>Minimal total rating</b>.':'')+'</p>';
+    if(!S.rows.length)$('list').innerHTML='<p>Tidak ada buku yang cocok. Longgarkan filter.</p>';
   }catch(e){if(tok===S.token)$('info').innerHTML='<span class="warn">Gagal: '+esc(e.message)+'</span>'}
 }
-$('more').onclick=async()=>{
-  if(S.shown<S.rows.length)return render(false);
-  try{S.olPage++;const {rows}=await fetchOL(filters(),S.olPage);S.rows=S.rows.concat(rows);render(false)}catch(e){$('info').textContent='Gagal: '+e.message}
-};
-let tm;const deb=()=>{clearTimeout(tm);tm=setTimeout(run,S.src==='ol'?600:150)};
+$('more').onclick=()=>render(false);
+let tm;const deb=()=>{clearTimeout(tm);tm=setTimeout(run,150)};
 ['q','y1','y2','minc'].forEach(id=>$(id).addEventListener('input',deb));
 ['sort','cat'].forEach(id=>$(id).addEventListener('change',run));
-function setSrc(s){S.src=s;$('s-gr').classList.toggle('on',s==='gr');$('s-ol').classList.toggle('on',s==='ol');run()}
-for(const s of ['gr','ol'])$('s-'+s).onclick=()=>setSrc(s);
-$('info').addEventListener('click',e=>{if(e.target.id==='go-ol'){if(num('minc')>500)$('minc').value='';setSrc('ol')}if(e.target.id==='go-gr')setSrc('gr')});
 run();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 </script>
