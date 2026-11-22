@@ -18,10 +18,12 @@ h1{margin:0 0 8px;font-size:19px}
 .src{display:flex;gap:6px;margin-bottom:8px}
 .src button{flex:1;padding:8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-weight:600}
 .src button.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}
+.grid>div,.src button{min-width:0}
+html,body{overflow-x:hidden;max-width:100%}
 .grid .full{grid-column:1/-1}
 label{font-size:11px;color:var(--mute);display:block}
-input,select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px}
+input,select{width:100%;min-width:0;-webkit-appearance:none;appearance:none;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:15px}
 .row2{display:flex;gap:6px}
 #info{font-size:12px;color:var(--mute);margin:8px 14px 0}
 #stats{display:flex;gap:6px;margin:8px 14px 0;flex-wrap:wrap}
@@ -157,7 +159,7 @@ async function run(){
       $('info').textContent='Mencari di Open Library…';
       S.olPage=1;const {rows,total}=await fetchOL(f,1); if(tok!==S.token)return;
       S.rows=rows;S.olTotal=total;
-      $('info').innerHTML='Sumber: Open Library (jutaan buku, live). Rating dari pengguna Open Library, <b>bukan</b> Goodreads.'+(f.sort==='count'?' Urutan total rating = 100 buku terpopuler lalu diurutkan.':'');
+      $('info').innerHTML='<span class="warn">⚠️ Ini mode <b>Open Library</b>: rating dari pengguna Open Library (puluhan–ribuan), <b>bukan</b> Goodreads.</span>'+(f.sort==='count'?' Urutan total rating = 100 buku terpopuler lalu diurutkan.':'')+((f.y1??0)<=2026&&(f.y2??0)<=2026?'<br><button id="go-gr" style="margin-top:6px;padding:6px 12px;border-radius:8px;border:0;background:var(--acc);color:var(--bg);font-weight:600">Lihat rating Goodreads (jutaan) →</button>':'');
       stats(S.rows,total);
     }
     render(true);
@@ -173,7 +175,7 @@ let tm;const deb=()=>{clearTimeout(tm);tm=setTimeout(run,S.src==='ol'?600:150)};
 ['sort','cat'].forEach(id=>$(id).addEventListener('change',run));
 function setSrc(s){S.src=s;$('s-gr').classList.toggle('on',s==='gr');$('s-ol').classList.toggle('on',s==='ol');run()}
 for(const s of ['gr','ol'])$('s-'+s).onclick=()=>setSrc(s);
-$('info').addEventListener('click',e=>{if(e.target.id==='go-ol'){if(num('minc')>500)$('minc').value='';setSrc('ol')}});
+$('info').addEventListener('click',e=>{if(e.target.id==='go-ol'){if(num('minc')>500)$('minc').value='';setSrc('ol')}if(e.target.id==='go-gr')setSrc('gr')});
 run();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 </script>
