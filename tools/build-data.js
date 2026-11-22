@@ -62,7 +62,7 @@ if (baruFile) {
   }
   console.log('Choice Awards 2025-2026: tambah', add, '| perbarui', upd);
 }
-for (const r of out) { r[0] = String(r[0]).replace(/s+/g, ' ').trim(); r[1] = String(r[1]).replace(/s+/g, ' ').trim(); }
+for (const r of out) { r[0] = String(r[0]).replace(/\s+/g, ' ').trim(); r[1] = String(r[1]).replace(/\s+/g, ' ').trim(); }
 fs.mkdirSync(path.join(__dirname, '..', 'data'), { recursive: true });
 fs.writeFileSync(path.join(__dirname, '..', 'data', 'goodreads.json'), JSON.stringify(out));
 const cnt = {}; out.forEach(r => r[5].forEach(g => cnt[g] = (cnt[g] || 0) + 1));
