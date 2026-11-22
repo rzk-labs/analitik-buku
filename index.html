@@ -16,7 +16,7 @@ html,body{overflow-x:hidden;max-width:100%}
 body{margin:0;font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;cursor:pointer}
 .wrap{max-width:860px;margin:0 auto;padding:0 14px}
-header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding-top:max(10px,env(safe-area-inset-top))}
 .top{display:flex;align-items:baseline;gap:8px;padding:12px 0 8px}
 h1{margin:0;font-size:20px}
 .sub{font-size:12px;color:var(--mute)}
@@ -36,14 +36,22 @@ h1{margin:0;font-size:20px}
 .tag{flex:none;display:flex;align-items:center;gap:4px;background:var(--soft);border:0;border-radius:999px;padding:6px 6px 6px 11px;font-size:13px;white-space:nowrap}
 .tag b{font-weight:400;opacity:.7;padding:0 4px}
 .reset{flex:none;border:0;background:none;color:var(--mute);font-size:13px;text-decoration:underline;padding:6px}
-#panel{display:none;border-top:1px solid var(--line);padding:6px 0 12px;max-height:62vh;overflow-y:auto}
-#panel.open{display:block}
+[hidden]{display:none!important}
+#shade{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:20}
+#panel{position:fixed;left:0;right:0;bottom:0;z-index:21;max-height:86vh;overflow-y:auto;background:var(--bg);border-radius:20px 20px 0 0;padding:0 16px calc(16px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.25)}
+@media (min-width:760px){#panel{left:50%;right:auto;bottom:auto;top:7vh;width:600px;transform:translateX(-50%);border-radius:20px;max-height:86vh}}
+.phead{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;background:var(--bg);padding:14px 0 8px;border-bottom:1px solid var(--line)}
+.phead h2{margin:0;font-size:18px;flex:1}
+.phead button{border:0;background:none;padding:6px 8px}
+.phead .x{font-size:20px}
+.pfoot{position:sticky;bottom:calc(-16px - env(safe-area-inset-bottom));background:var(--bg);padding:10px 0 4px}
+body.lock{overflow:hidden}
 .grp{margin-top:10px}
 .grp h3{margin:0 0 6px;font-size:13px;color:var(--mute);font-weight:600}
 .grp .chips{flex-wrap:wrap;overflow:visible;padding:0}
 .range{display:flex;gap:6px;align-items:center;margin-top:8px;font-size:13px;color:var(--mute)}
 .range input,select{min-width:0;width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font-size:16px;-webkit-appearance:none;appearance:none}
-.done{width:100%;margin-top:14px;padding:12px;border:0;border-radius:12px;background:var(--acc);color:var(--accT);font-weight:700}
+.done{width:100%;margin-top:0;padding:12px;border:0;border-radius:12px;background:var(--acc);color:var(--accT);font-weight:700}
 #note{font-size:13px;color:var(--mute);margin:10px 0 0}
 #stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:10px 0 0}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:12px;color:var(--mute)}
@@ -72,13 +80,15 @@ footer{font-size:12px;color:var(--mute);padding:0 0 30px}
 </style>
 </head>
 <body>
+<div class="wrap"><div class="top"><h1>📚 Analitik Buku</h1><span class="sub" id="sub">data Goodreads</span></div></div>
 <header>
   <div class="wrap">
-    <div class="top"><h1>📚 Analitik Buku</h1><span class="sub" id="sub">data Goodreads</span></div>
     <div class="search"><span class="ic">🔍</span><input id="q" type="search" placeholder="Cari judul atau penulis" autocomplete="off" enterkeyhint="search" maxlength="100"><button class="clr" id="clr" hidden aria-label="Hapus pencarian">✕</button></div>
     <div class="chips" id="sorts"></div>
     <div class="bar"><button class="fbtn" id="fbtn">⚙️ Filter<span class="n" id="fcount" hidden></span></button><span id="active" style="display:contents"></span></div>
-    <div id="panel">
+    <div id="shade" hidden></div>
+    <div id="panel" hidden role="dialog" aria-modal="true" aria-label="Filter">
+      <div class="phead"><h2>Filter</h2><button class="reset" id="preset">Reset</button><button class="x" id="pclose" aria-label="Tutup">✕</button></div>
       <div class="grp"><h3>Kategori</h3><div class="chips" id="catChips"></div>
         <div class="range"><select id="cat" aria-label="Kategori lain"><option value="">Kategori lain…</option></select></div></div>
       <div class="grp"><h3>Tahun terbit</h3><div class="chips" id="yearChips"></div>
@@ -86,7 +96,7 @@ footer{font-size:12px;color:var(--mute);padding:0 0 30px}
       <div class="grp"><h3>Jumlah halaman</h3><div class="chips" id="pageChips"></div>
         <div class="range"><input id="p1" type="number" inputmode="numeric" min="0" placeholder="min"> – <input id="p2" type="number" inputmode="numeric" min="0" placeholder="maks"></div></div>
       <div class="grp"><h3>Minimal total rating</h3><div class="chips" id="mincChips"></div></div>
-      <button class="done" id="done">Lihat hasil</button>
+      <div class="pfoot"><button class="done" id="done">Lihat hasil</button></div>
     </div>
   </div>
 </header>
@@ -148,8 +158,12 @@ $('active').onclick=e=>{
   const b=e.target.closest('.tag');if(!b)return;const k=b.dataset.k;
   if(k==='cat')F.cat='';if(k==='year')F.y1=F.y2=null;if(k==='page')F.p1=F.p2=null;if(k==='minc')F.minc=null;update();
 };
-$('fbtn').onclick=()=>$('panel').classList.toggle('open');
-$('done').onclick=()=>{$('panel').classList.remove('open');scrollTo({top:0})};
+function panel(open){$('panel').hidden=$('shade').hidden=!open;document.body.classList.toggle('lock',open)}
+$('fbtn').onclick=()=>panel(true);
+$('pclose').onclick=$('shade').onclick=()=>panel(false);
+$('done').onclick=()=>{panel(false);scrollTo({top:0})};
+$('preset').onclick=()=>{Object.assign(F,{cat:'',y1:null,y2:null,p1:null,p2:null,minc:null});update()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')panel(false)});
 let tm;const later=fn=>{clearTimeout(tm);tm=setTimeout(fn,180)};
 $('q').oninput=()=>{F.q=$('q').value.trim().toLowerCase().slice(0,100);$('clr').hidden=!F.q;later(update)};
 $('clr').onclick=()=>{$('q').value='';F.q='';update();$('q').focus()};
@@ -226,6 +240,7 @@ async function update(){
     if((F.y1??0)>2026||(F.y2??0)>2026)notes.push('<span class="warn">⚠️ Data tersedia sampai tahun 2026.</span>');
     $('note').innerHTML=notes.join(' ');
     stats(S.rows);render(true);
+    $('done').textContent=S.rows.length?'Tampilkan '+nf.format(S.rows.length)+' buku':'Tidak ada buku yang cocok';
     if(!S.rows.length)$('list').innerHTML='<div class="empty">Tidak ada buku yang cocok.<br><button id="reset2">Hapus semua filter</button></div>';
   }catch(e){$('note').innerHTML='<span class="warn">Gagal memuat: '+esc(e.message)+'</span>'}
 }
